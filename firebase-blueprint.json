@@ -1,0 +1,94 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with streak counters and productivity statistics",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "currentStreak": { "type": "number" },
+        "longestStreak": { "type": "number" },
+        "totalCompletedTasks": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "lastActiveDate": { "type": "string" }
+      },
+      "required": ["email", "currentStreak", "longestStreak", "totalCompletedTasks"]
+    },
+    "Board": {
+      "title": "Board",
+      "description": "Workspace task board containing customizable Kanban columns",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "title": { "type": "string" },
+              "color": { "type": "string" },
+              "order": { "type": "number" }
+            },
+            "required": ["id", "title", "order"]
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "ownerId", "columns"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "Task item with priority, energy level, Pomodoro tracking, and subtasks",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "boardId": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "status": { "type": "string" },
+        "priority": { "type": "string", "enum": ["urgent", "high", "medium", "low"] },
+        "energyLevel": { "type": "string", "enum": ["low", "medium", "high"] },
+        "dueDate": { "type": "string" },
+        "dueTime": { "type": "string" },
+        "estimatedMinutes": { "type": "number" },
+        "subtasks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "title": { "type": "string" },
+              "completed": { "type": "boolean" },
+              "estimatedMinutes": { "type": "number" }
+            },
+            "required": ["id", "title", "completed"]
+          }
+        },
+        "eisenhowerQuadrant": { "type": "string" },
+        "aiReasoning": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "boardId", "ownerId", "status", "priority", "energyLevel"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile documents"
+    },
+    "/users/{userId}/boards/{boardId}": {
+      "schema": "Board",
+      "description": "User task boards subcollection"
+    },
+    "/users/{userId}/boards/{boardId}/tasks/{taskId}": {
+      "schema": "Task",
+      "description": "Board tasks subcollection"
+    }
+  }
+}

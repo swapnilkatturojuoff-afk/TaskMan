@@ -1,0 +1,10 @@
+{
+  "name": "TaskMan",
+  "description": "Multi-board AI-powered task management workspace with automated task decomposition, smart prioritization, natural language parsing, and focus timers.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

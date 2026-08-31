@@ -1,0 +1,77 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for security validation
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidUserDoc(data) {
+      return data.email is string &&
+             data.email.size() > 3 &&
+             data.email.size() <= 255 &&
+             data.currentStreak is number &&
+             data.longestStreak is number &&
+             data.totalCompletedTasks is number;
+    }
+
+    function isValidBoard(data) {
+      return data.name is string &&
+             data.name.size() > 0 &&
+             data.name.size() <= 100 &&
+             data.ownerId == request.auth.uid &&
+             data.columns is list &&
+             data.columns.size() > 0 &&
+             data.columns.size() <= 20;
+    }
+
+    function isValidTask(data) {
+      return data.title is string &&
+             data.title.size() > 0 &&
+             data.title.size() <= 500 &&
+             data.status is string &&
+             data.priority in ['urgent', 'high', 'medium', 'low'] &&
+             data.energyLevel in ['low', 'medium', 'high'] &&
+             data.ownerId == request.auth.uid;
+    }
+
+    // User Profile Document
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserDoc(request.resource.data);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+
+      // Workspaces & Boards Subcollection
+      match /boards/{boardId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidBoard(request.resource.data);
+        allow update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+
+        // Tasks Subcollection
+        match /tasks/{taskId} {
+          allow read: if isOwner(userId);
+          allow create: if isOwner(userId) && isValidTask(request.resource.data);
+          allow update: if isOwner(userId);
+          allow delete: if isOwner(userId);
+        }
+      }
+
+      // User Interactions / AI History Subcollection
+      match /interactions/{interactionId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Explicit fallback rejection for any unmapped paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
